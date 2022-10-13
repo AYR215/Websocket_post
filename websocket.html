@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js">
+</script>
+  <script language="javascript" type="text/javascript">
+    $(function() {
+      var conn = null;
+
+      function log(msg) {
+        var control = $('#log');
+        control.html(control.html() + msg + '<br/>');
+        control.scrollTop(control.scrollTop() + 1000);
+      }
+
+      function connect() {
+        disconnect(); // разрываем соединение если функция вызвана по-ошибке
+        var wsUri = (window.location.protocol=='https:'&&'wss://'||'ws://')+window.location.host;
+        conn = new WebSocket(wsUri); //открываем соединение
+        conn.onopen = function() {
+          log('Welcome!');
+          update_ui();
+        };
+
+        conn.onmessage = function(e) {
+          log('Breaking news: ' + e.data);
+        };
+
+        conn.onclose = function() {
+          log('Connecting error');
+          conn = null;
+          update_ui();
+        };
+      }
+
+      function disconnect() {
+        if (conn != null) {
+          log('Goodbye!');
+          conn.close();
+          conn = null;
+          update_ui();
+        }
+      }
+
+      function update_ui() {
+        if (conn == null) {
+          $('#status').text('disconnected');
+          $('#connect').html('Connect');
+        } else {
+          $('#status').text('connected');
+          $('#connect').html('Disconnect');
+        }
+      }
+<!--     обработчики событий -->
+      $('#connect').click(function() {
+        if (conn == null) {
+          connect();
+        } else {
+          disconnect();
+        }
+        update_ui();
+        return false;
+      });
+
+    });
+</script>
+</head>
+<style>
+ body {
+  background-color: lightblue;
+ }
+
+ .container {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+ }
+
+ #log {
+   padding: 20px;
+   width: 85%;
+   height:500px;
+   border:1px solid black;
+   font-size: 24px;
+   background-color: white;
+   overflow:auto;
+ }
+
+</style>
+<body>
+<div class="container">
+  <h1>News portal</h1>
+  <div>
+    <button id="connect">Connect</button>&nbsp;|&nbsp;Status:
+    <span id="status">disconnected</span>
+  </div>
+  <div id="log"></div>
+</div>
+</body>
+</html>
